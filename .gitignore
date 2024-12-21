@@ -1,0 +1,10 @@
+.cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+compile_commands.json
+*.o
+*.log
+build
+fragart
