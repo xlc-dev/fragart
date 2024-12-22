@@ -65,10 +65,10 @@ static void generate_flowfield_vertex_data(void) {
     int i;
     srand((unsigned int) time(NULL));
     for (i = 0; i < NUM_POINTS * 4; i += 4) {
-        flowfield_vertex_data[i]     = ((float) rand() / RAND_MAX) * 2.0f - 1.0f;
-        flowfield_vertex_data[i + 1] = ((float) rand() / RAND_MAX) * 2.0f - 1.0f;
-        flowfield_vertex_data[i + 2] = (float) rand() / RAND_MAX;
-        flowfield_vertex_data[i + 3] = (float) rand() / RAND_MAX;
+        flowfield_vertex_data[i]     = ((float) rand() / (float) RAND_MAX) * 2.0f - 1.0f;
+        flowfield_vertex_data[i + 1] = ((float) rand() / (float) RAND_MAX) * 2.0f - 1.0f;
+        flowfield_vertex_data[i + 2] = (float) rand() / (float) RAND_MAX;
+        flowfield_vertex_data[i + 3] = (float) rand() / (float) RAND_MAX;
     }
 }
 
@@ -85,8 +85,8 @@ static void res_time(GLFWwindow *window, NXUIShaderProgram *shader_prog) {
 }
 
 static void res(GLFWwindow *window, NXUIShaderProgram *shader_prog) {
-    (void) window;
     float timeValue = (float) glfwGetTime();
+    (void) window;
     nxui_set_uniform_float(shader_prog, "iTime", timeValue);
 }
 
