@@ -34,12 +34,12 @@ int main(int argc, char **argv) {
     const char *files_to_remove[] = {"glad.o", "fragart"};
 
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
+        if (!nx_strcmp(argv[i], "--help") || !nx_strcmp(argv[i], "-h")) {
             print_help();
             return EXIT_SUCCESS;
         }
 
-        if (!strcmp(argv[i], "--clean") || !strcmp(argv[i], "-c")) {
+        if (!nx_strcmp(argv[i], "--clean") || !nx_strcmp(argv[i], "-c")) {
             return clean(files_to_remove, nx_len(files_to_remove));
         }
     }
@@ -65,12 +65,12 @@ int main(int argc, char **argv) {
     };
     /* clang-format on */
 
-    int glad_result = nx_compile_command("glad", glad_args, nx_len(glad_args), 0);
+    int glad_result = nx_compile_command("glad", glad_args, nx_len(glad_args), false);
     if (glad_result != 0) {
         return glad_result;
     }
 
-    int nexus_result = nx_compile_command("fragart", nexus_args, nx_len(nexus_args), 1);
+    int nexus_result = nx_compile_command("fragart", nexus_args, nx_len(nexus_args), true);
     if (nexus_result != 0) {
         return nexus_result;
     }
