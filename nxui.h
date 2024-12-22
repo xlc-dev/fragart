@@ -81,6 +81,7 @@ typedef struct {
 } NXUIShaderProgram;
 
 typedef struct {
+    GLenum             mode;
     GLuint             vao;
     GLuint             vbo;
     GLuint             ebo;
@@ -123,6 +124,8 @@ NXUIMesh nxui_create_mesh(const void *vertex_data, size_t vertex_size, const uns
 
 void nxui_set_uniform_float(NXUIShaderProgram *shader, const char *name, float value);
 void nxui_set_uniform_int(NXUIShaderProgram *shader, const char *name, int value);
+void nxui_set_uniform_vec2(NXUIShaderProgram *shader, const char *name, float x, float y);
+void nxui_set_uniform_vec3(NXUIShaderProgram *shader, const char *name, float x, float y, float z);
 void nxui_set_uniform_vec4(NXUIShaderProgram *shader, const char *name, float x, float y, float z,
                            float w);
 
@@ -341,7 +344,8 @@ void nxui_render_ui(NXUIContext *context) {
         for (j = 0; j < context->mesh_count; j++) {
             if (context->meshes[j].shader == &context->shaders[i]) {
                 glBindVertexArray(context->meshes[j].vao);
-                glDrawElements(GL_TRIANGLES, context->meshes[j].index_count, GL_UNSIGNED_INT, 0);
+                glDrawElements(context->meshes[j].mode, context->meshes[j].index_count,
+                               GL_UNSIGNED_INT, 0);
             }
         }
     }
@@ -362,6 +366,22 @@ void nxui_set_uniform_int(NXUIShaderProgram *shader, const char *name, int value
         nx_die1("Uniform '%s' not found in shader program.", name);
     }
     glUniform1i(location, value);
+}
+
+void nxui_set_uniform_vec2(NXUIShaderProgram *shader, const char *name, float x, float y) {
+    GLint location = glGetUniformLocation(shader->program_id, name);
+    if (location == -1) {
+        nx_die1("Uniform '%s' not found in shader program.", name);
+    }
+    glUniform2f(location, x, y);
+}
+
+void nxui_set_uniform_vec3(NXUIShaderProgram *shader, const char *name, float x, float y, float z) {
+    GLint location = glGetUniformLocation(shader->program_id, name);
+    if (location == -1) {
+        nx_die1("Uniform '%s' not found in shader program.", name);
+    }
+    glUniform3f(location, x, y, z);
 }
 
 void nxui_set_uniform_vec4(NXUIShaderProgram *shader, const char *name, float x, float y, float z,
