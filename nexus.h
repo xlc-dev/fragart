@@ -1,16 +1,14 @@
 /* Copyright (C) 2024 Nexus
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
+ * it under the terms of the Mozilla Public License, version 2.0.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OF ANY KIND, either express or implied.
+ * See the Mozilla Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License
+ * along with this program. If not, see <https://www.mozilla.org/MPL/2.0/>.
  *
  * ===== DOCUMENTATION ====================================================
  *
@@ -62,12 +60,24 @@
  *        Sets the growth factor of the string builder. Default is 2.
  *
  * ===== VERSIONING =======================================================
- * Version: 0.0.3
- * Release Date: TODO
+ *
+ * Version: 0.1.1
+ * Release Date: 22-12-2024
+ *
+ * Changelog:
+ * - Make use of boolean flags
+ *
+ * Version: 0.1.0
+ * Release Date: 22-12-2024
  *
  * Changelog:
  * - Added NX_MATH macro to include math.h
  * - Make documentation pretty
+ * - Fix rebuild using old binary
+ * - Make rebuild safe
+ * - Add better overwritable macros section
+ * - Add support for logging
+ * - Add all color macros
  *
  * Version: 0.0.2
  * Release Date: 20-12-2024
@@ -91,10 +101,6 @@
  * - Command Runner (in which you can also build your project with)
  * - File IO helpers
  */
-
-/* TODO: Logging, nx_statement sucks (probably commas), rebuild needs to run the rebuild binary, not
- * old one when rebuilding */
-
 #ifndef NEXUS_H
 #define NEXUS_H
 
@@ -147,18 +153,6 @@ typedef int bool;
 #define NX_STRING_BUILDER_GROWTH_FACTOR 2
 #endif
 
-/* Function Declerations {{{ */
-int  _snprintf(char *buffer, size_t size, const char *format, ...);
-void nx_die_impl(const char *file, int line, const char *fmt, ...);
-int  nx_compile_command(const char *description, const char **args, int arg_count,
-                        int enable_warnings);
-
-#define nx_die(fmt) nx_die_impl(__FILE__, __LINE__, fmt)
-#define nx_die1(fmt, a1) nx_die_impl(__FILE__, __LINE__, fmt, a1)
-#define nx_die2(fmt, a1, a2) nx_die_impl(__FILE__, __LINE__, fmt, a1, a2)
-#define nx_die3(fmt, a1, a2, a3) nx_die_impl(__FILE__, __LINE__, fmt, a1, a2, a3)
-/* }}} */
-
 /* Macros {{{ */
 #define nx_join_(a, b) a##b
 #define nx_join(a, b) nx_join_(a, b)
@@ -209,159 +203,303 @@ int  nx_compile_command(const char *description, const char **args, int arg_coun
 #define MAX_DOUBLE 1.7976931348623158e+308
 #define MIN_DOUBLE 2.2250738585072014e-308
 
+#define COLOR_BLACK "\x1b[30m"
 #define COLOR_RED "\x1b[31m"
 #define COLOR_GREEN "\x1b[32m"
 #define COLOR_YELLOW "\x1b[33m"
+#define COLOR_BLUE "\x1b[34m"
+#define COLOR_MAGENTA "\x1b[35m"
+#define COLOR_CYAN "\x1b[36m"
+#define COLOR_WHITE "\x1b[37m"
+
+#define COLOR_BRIGHT_BLACK "\x1b[90m"
+#define COLOR_BRIGHT_RED "\x1b[91m"
+#define COLOR_BRIGHT_GREEN "\x1b[92m"
+#define COLOR_BRIGHT_YELLOW "\x1b[93m"
+#define COLOR_BRIGHT_BLUE "\x1b[94m"
+#define COLOR_BRIGHT_MAGENTA "\x1b[95m"
+#define COLOR_BRIGHT_CYAN "\x1b[96m"
+#define COLOR_BRIGHT_WHITE "\x1b[97m"
+
+#define COLOR_BG_BLACK "\x1b[40m"
+#define COLOR_BG_RED "\x1b[41m"
+#define COLOR_BG_GREEN "\x1b[42m"
+#define COLOR_BG_YELLOW "\x1b[43m"
+#define COLOR_BG_BLUE "\x1b[44m"
+#define COLOR_BG_MAGENTA "\x1b[45m"
+#define COLOR_BG_CYAN "\x1b[46m"
+#define COLOR_BG_WHITE "\x1b[47m"
+
 #define COLOR_RESET "\x1b[0m"
+#define COLOR_BOLD "\x1b[1m"
+#define COLOR_DIM "\x1b[2m"
+#define COLOR_ITALIC "\x1b[3m"
+#define COLOR_UNDERLINE "\x1b[4m"
+#define COLOR_BLINK "\x1b[5m"
+#define COLOR_REVERSE "\x1b[7m"
+#define COLOR_HIDDEN "\x1b[8m"
 /* }}} */
 
 /* Overwritable macros {{{ */
 #ifndef nx_memcpy
 #define nx_memcpy memcpy
 #endif
-
 #ifndef nx_memmove
 #define nx_memmove memmove
 #endif
-
 #ifndef nx_memset
 #define nx_memset memset
 #endif
-
 #ifndef nx_memcmp
 #define nx_memcmp memcmp
-#endif
-
-#ifndef nx_strlen
-#define nx_strlen strlen
-#endif
-
-#ifndef nx_strcpy
-#define nx_strcpy strcpy
-#endif
-
-#ifndef nx_strncpy
-#define nx_strncpy strncpy
-#endif
-
-#ifndef nx_strcat
-#define nx_strcat strcat
-#endif
-
-#ifndef nx_strncat
-#define nx_strncat strncat
-#endif
-
-#ifndef nx_strcmp
-#define nx_strcmp strcmp
-#endif
-
-#ifndef nx_strncmp
-#define nx_strncmp strncmp
-#endif
-
-#ifndef nx_strchr
-#define nx_strchr strchr
-#endif
-
-#ifndef nx_strstr
-#define nx_strstr strstr
-#endif
-
-#ifndef nx_atoi
-#define nx_atoi atoi
-#endif
-
-#ifndef nx_atof
-#define nx_atof atof
-#endif
-
-#ifndef nx_sqrt
-#define nx_sqrt sqrt
-#endif
-
-#ifndef nx_sin
-#define nx_sin sin
-#endif
-
-#ifndef nx_cos
-#define nx_cos cos
-#endif
-
-#ifndef nx_tan
-#define nx_tan tan
-#endif
-
-#ifndef nx_log
-#define nx_log log
-#endif
-
-#ifndef nx_exp
-#define nx_exp exp
-#endif
-
-#ifndef nx_pow
-#define nx_pow pow
-#endif
-
-#ifndef nx_floor
-#define nx_floor floor
-#endif
-
-#ifndef nx_ceil
-#define nx_ceil ceil
-#endif
-
-#ifndef nx_round
-#define nx_round round
-#endif
-
-#ifndef nx_fmod
-#define nx_fmod fmod
 #endif
 
 #ifndef nx_printf
 #define nx_printf printf
 #endif
-
-#ifndef nx_sprintf
-#define nx_sprintf sprintf
-#endif
-
-#ifndef nx_snprintf
-#ifdef __STDC_VERSION__
-#define nx_snprintf snprintf
-#else
-#define nx_snprintf _snprintf
-#endif
-#endif
-
 #ifndef nx_fprintf
 #define nx_fprintf fprintf
 #endif
-
+#ifndef nx_sprintf
+#define nx_sprintf sprintf
+#endif
 #ifndef nx_scanf
 #define nx_scanf scanf
 #endif
-
 #ifndef nx_fscanf
 #define nx_fscanf fscanf
+#endif
+#ifndef nx_sscanf
+#define nx_sscanf sscanf
+#endif
+#ifndef nx_vprintf
+#define nx_vprintf vprintf
+#endif
+#ifndef nx_vfprintf
+#define nx_vfprintf vfprintf
+#endif
+#ifndef nx_vsprintf
+#define nx_vsprintf vsprintf
 #endif
 
 #ifndef nx_fopen
 #define nx_fopen fopen
 #endif
-
 #ifndef nx_fclose
 #define nx_fclose fclose
 #endif
-
 #ifndef nx_fread
 #define nx_fread fread
 #endif
-
 #ifndef nx_fwrite
 #define nx_fwrite fwrite
+#endif
+#ifndef nx_fseek
+#define nx_fseek fseek
+#endif
+#ifndef nx_ftell
+#define nx_ftell ftell
+#endif
+#ifndef nx_fflush
+#define nx_fflush fflush
+#endif
+#ifndef nx_ferror
+#define nx_ferror ferror
+#endif
+#ifndef nx_feof
+#define nx_feof feof
+#endif
+#ifndef nx_remove
+#define nx_remove remove
+#endif
+#ifndef nx_rename
+#define nx_rename rename
+#endif
+
+#ifndef nx_strlen
+#define nx_strlen strlen
+#endif
+#ifndef nx_strcpy
+#define nx_strcpy strcpy
+#endif
+#ifndef nx_strncpy
+#define nx_strncpy strncpy
+#endif
+#ifndef nx_strcat
+#define nx_strcat strcat
+#endif
+#ifndef nx_strncat
+#define nx_strncat strncat
+#endif
+#ifndef nx_strcmp
+#define nx_strcmp strcmp
+#endif
+#ifndef nx_strncmp
+#define nx_strncmp strncmp
+#endif
+#ifndef nx_strchr
+#define nx_strchr strchr
+#endif
+#ifndef nx_strrchr
+#define nx_strrchr strrchr
+#endif
+#ifndef nx_strstr
+#define nx_strstr strstr
+#endif
+#ifndef nx_strtok
+#define nx_strtok strtok
+#endif
+
+#ifndef nx_atoi
+#define nx_atoi atoi
+#endif
+#ifndef nx_atof
+#define nx_atof atof
+#endif
+#ifndef nx_atol
+#define nx_atol atol
+#endif
+#ifndef nx_strtod
+#define nx_strtod strtod
+#endif
+#ifndef nx_strtol
+#define nx_strtol strtol
+#endif
+#ifndef nx_strtoul
+#define nx_strtoul strtoul
+#endif
+#ifndef nx_sqrt
+#define nx_sqrt sqrt
+#endif
+#ifndef nx_sin
+#define nx_sin sin
+#endif
+#ifndef nx_cos
+#define nx_cos cos
+#endif
+#ifndef nx_tan
+#define nx_tan tan
+#endif
+#ifndef nx_asin
+#define nx_asin asin
+#endif
+#ifndef nx_acos
+#define nx_acos acos
+#endif
+#ifndef nx_atan
+#define nx_atan atan
+#endif
+#ifndef nx_atan2
+#define nx_atan2 atan2
+#endif
+#ifndef nx_sinh
+#define nx_sinh sinh
+#endif
+#ifndef nx_cosh
+#define nx_cosh cosh
+#endif
+#ifndef nx_tanh
+#define nx_tanh tanh
+#endif
+#ifndef nx_log
+#define nx_log log
+#endif
+#ifndef nx_log10
+#define nx_log10 log10
+#endif
+#ifndef nx_exp
+#define nx_exp exp
+#endif
+#ifndef nx_pow
+#define nx_pow pow
+#endif
+#ifndef nx_floor
+#define nx_floor floor
+#endif
+#ifndef nx_ceil
+#define nx_ceil ceil
+#endif
+#ifndef nx_fabs
+#define nx_fabs fabs
+#endif
+#ifndef nx_fmod
+#define nx_fmod fmod
+#endif
+
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) || defined(_MSC_VER)
+#define nx_snprintf snprintf
+#define nx_vsnprintf vsnprintf
+#else
+static int fallback_snprintf(char *str, size_t size, const char *format, ...)
+    __attribute__((unused));
+static int fallback_vsnprintf(char *str, size_t size, const char *format, va_list ap)
+    __attribute__((unused));
+
+static int fallback_snprintf(char *str, size_t size, const char *format, ...) {
+    int     ret;
+    va_list args;
+    char   *buffer;
+    va_start(args, format);
+
+    buffer = (char *) malloc(size);
+    if (buffer == NULL) {
+        va_end(args);
+        return -1;
+    }
+
+    ret = vsprintf(buffer, format, args);
+    if (ret < 0) {
+        free(buffer);
+        va_end(args);
+        return -1;
+    }
+    strncpy(str, buffer, size - 1);
+    str[size - 1] = '\0';
+    free(buffer);
+
+    va_end(args);
+    return ret;
+}
+
+static int fallback_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
+    int   ret;
+    char *buffer;
+
+    buffer = (char *) malloc(size);
+    if (buffer == NULL) {
+        return -1;
+    }
+
+    ret = vsprintf(buffer, format, ap);
+    if (ret < 0) {
+        free(buffer);
+        return -1;
+    }
+    strncpy(str, buffer, size - 1);
+    str[size - 1] = '\0';
+    free(buffer);
+
+    return ret;
+}
+
+#define nx_snprintf fallback_snprintf
+#define nx_vsnprintf fallback_vsnprintf
+#endif
+
+#ifndef nx_strdup
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define nx_strdup strdup
+#else
+#define nx_strdup(s) (strcpy(malloc(strlen(s) + 1), s))
+#endif
+#endif
+
+#ifndef nx_round
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define nx_round round
+#else
+#define nx_round(x) (floor((x) + 0.5))
+#endif
 #endif
 /* }}} */
 
@@ -384,6 +522,15 @@ void  nx_print_memory_leaks(void);
 #define nx_free(ptr) free(ptr)
 #define nx_print_memory_leaks() (void) 0
 #endif /* NX_DEBUG */
+/* }}} */
+
+/* Error Handling {{{ */
+void nx_die_impl(const char *file, int line, const char *fmt, ...);
+
+#define nx_die(fmt) nx_die_impl(__FILE__, __LINE__, fmt)
+#define nx_die1(fmt, a1) nx_die_impl(__FILE__, __LINE__, fmt, a1)
+#define nx_die2(fmt, a1, a2) nx_die_impl(__FILE__, __LINE__, fmt, a1, a2)
+#define nx_die3(fmt, a1, a2, a3) nx_die_impl(__FILE__, __LINE__, fmt, a1, a2, a3)
 /* }}} */
 
 /* Arena {{{ */
@@ -501,6 +648,8 @@ int         nx_cr_run(const char *command);
 
 /* Command Runner (Build) {{{ */
 int nx_rebuild(const char *source_file, int argc, char **argv);
+int nx_compile_command(const char *description, const char **args, int arg_count,
+                       bool enable_warnings);
 
 #define NX_REBUILD(argc, argv)                                                                     \
     do {                                                                                           \
@@ -542,6 +691,71 @@ int     nx_file_exists(const char *filename);
 long    nx_file_size(const char *filename);
 /* }}} */
 
+/* Logging {{{ */
+typedef enum {
+    NX_LOG_TRACE = 0,
+    NX_LOG_DEBUG,
+    NX_LOG_INFO,
+    NX_LOG_WARN,
+    NX_LOG_ERROR,
+    NX_LOG_FATAL
+} NXLogLevel;
+
+typedef struct {
+    NXFile          *file;
+    bool             use_stdout;
+    bool             use_timestamps;
+    NXLogLevel       min_level;
+    NXStringBuilder *buffer;
+} NXLogger;
+
+const char *NX_LOG_LEVEL_STRINGS[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
+
+const char *NX_LOG_LEVEL_COLORS[] = {
+    COLOR_BRIGHT_BLACK, /* TRACE */
+    COLOR_CYAN,         /* DEBUG */
+    COLOR_GREEN,        /* INFO */
+    COLOR_YELLOW,       /* WARN */
+    COLOR_RED,          /* ERROR */
+    COLOR_MAGENTA       /* FATAL */
+};
+
+NXLogger *nx_logger_create(const char *filename, bool use_stdout, bool use_timestamps,
+                           NXLogLevel min_level);
+void      nx_logger_destroy(NXLogger *logger);
+void      nx_logger_log(NXLogger *logger, NXLogLevel level, const char *format, ...);
+
+#define nx_logger_trace(l, f) nx_logger_log(l, NX_LOG_TRACE, f)
+#define nx_logger_trace1(l, f, a1) nx_logger_log(l, NX_LOG_TRACE, f, a1)
+#define nx_logger_trace2(l, f, a1, a2) nx_logger_log(l, NX_LOG_TRACE, f, a1, a2)
+#define nx_logger_trace3(l, f, a1, a2, a3) nx_logger_log(l, NX_LOG_TRACE, f, a1, a2, a3)
+
+#define nx_logger_debug(l, f) nx_logger_log(l, NX_LOG_DEBUG, f)
+#define nx_logger_debug1(l, f, a1) nx_logger_log(l, NX_LOG_DEBUG, f, a1)
+#define nx_logger_debug2(l, f, a1, a2) nx_logger_log(l, NX_LOG_DEBUG, f, a1, a2)
+#define nx_logger_debug3(l, f, a1, a2, a3) nx_logger_log(l, NX_LOG_DEBUG, f, a1, a2, a3)
+
+#define nx_logger_info(l, f) nx_logger_log(l, NX_LOG_INFO, f)
+#define nx_logger_info1(l, f, a1) nx_logger_log(l, NX_LOG_INFO, f, a1)
+#define nx_logger_info2(l, f, a1, a2) nx_logger_log(l, NX_LOG_INFO, f, a1, a2)
+#define nx_logger_info3(l, f, a1, a2, a3) nx_logger_log(l, NX_LOG_INFO, f, a1, a2, a3)
+
+#define nx_logger_warn(l, f) nx_logger_log(l, NX_LOG_WARN, f)
+#define nx_logger_warn1(l, f, a1) nx_logger_log(l, NX_LOG_WARN, f, a1)
+#define nx_logger_warn2(l, f, a1, a2) nx_logger_log(l, NX_LOG_WARN, f, a1, a2)
+#define nx_logger_warn3(l, f, a1, a2, a3) nx_logger_log(l, NX_LOG_WARN, f, a1, a2, a3)
+
+#define nx_logger_error(l, f) nx_logger_log(l, NX_LOG_ERROR, f)
+#define nx_logger_error1(l, f, a1) nx_logger_log(l, NX_LOG_ERROR, f, a1)
+#define nx_logger_error2(l, f, a1, a2) nx_logger_log(l, NX_LOG_ERROR, f, a1, a2)
+#define nx_logger_error3(l, f, a1, a2, a3) nx_logger_log(l, NX_LOG_ERROR, f, a1, a2, a3)
+
+#define nx_logger_fatal(l, f) nx_logger_log(l, NX_LOG_FATAL, f)
+#define nx_logger_fatal1(l, f, a1) nx_logger_log(l, NX_LOG_FATAL, f, a1)
+#define nx_logger_fatal2(l, f, a1, a2) nx_logger_log(l, NX_LOG_FATAL, f, a1, a2)
+#define nx_logger_fatal3(l, f, a1, a2, a3) nx_logger_log(l, NX_LOG_FATAL, f, a1, a2, a3)
+/* }}} */
+
 #ifdef __cplusplus
 }
 #endif /* extern "C" */
@@ -549,29 +763,6 @@ long    nx_file_size(const char *filename);
 #endif /* NEXUS_H */
 
 #ifdef NEXUS_IMPLEMENTATION
-
-/* Compat Layer {{{ */
-/* Add support for non-standard snprintf */
-int _snprintf(char *buffer, size_t size, const char *format, ...) {
-    int     result;
-    va_list args;
-    va_start(args, format);
-
-    result = vsprintf(buffer, format, args);
-
-    va_end(args);
-
-    if (result < (int) size) {
-        return result;
-    }
-
-    if (size > 0) {
-        buffer[size - 1] = '\0';
-    }
-
-    return result;
-}
-/* }}} */
 
 /* Memory Tracker {{{ */
 #ifdef NX_DEBUG
@@ -1305,7 +1496,7 @@ static void _nx_remove_extension(char *filename) {
 }
 
 int nx_compile_command(const char *description, const char **args, int arg_count,
-                       int enable_warnings) {
+                       bool enable_warnings) {
     NXCR *cr;
     int   i;
     int   result;
@@ -1326,8 +1517,7 @@ int nx_compile_command(const char *description, const char **args, int arg_count
 
     result = nx_cr_execute(cr);
     if (result != 0) {
-        printf("%sCompilation of %s failed. Output:%s\n%s\n", COLOR_RED, description, COLOR_RESET,
-               nx_cr_get_output(cr));
+        printf("%sCompilation of %s failed.%s\n", COLOR_RED, description, COLOR_RESET);
     } else {
         printf("%sCompilation of %s succeeded.%s\n", COLOR_GREEN, description, COLOR_RESET);
     }
@@ -1345,21 +1535,25 @@ int nx_rebuild(const char *source_file, int argc, char **argv) {
     int         need_build;
     const char *args[8];
     int         compile_result;
+    char      **new_argv;
+    int         i;
 
     basename_with_ext = _nx_extract_basename(source_file);
-    strncpy(basename, basename_with_ext, sizeof(basename));
+    if (strlen(basename_with_ext) >= sizeof(basename)) {
+        fprintf(stderr, "Error: Source file basename is too long.\n");
+        return -1;
+    }
+    strncpy(basename, basename_with_ext, sizeof(basename) - 1);
     basename[sizeof(basename) - 1] = '\0';
     _nx_remove_extension(basename);
 
     output_executable = basename;
-
-    need_build = 0;
+    need_build        = 0;
 
     if (stat(source_file, &src_stat) != 0) {
         perror("stat source_file");
         return -1;
     }
-
     if (stat(output_executable, &exe_stat) != 0) {
         need_build = 1;
     } else if (src_stat.st_mtime > exe_stat.st_mtime) {
@@ -1383,6 +1577,22 @@ int nx_rebuild(const char *source_file, int argc, char **argv) {
         if (compile_result != 0) {
             return compile_result;
         }
+
+        new_argv = (char **) nx_malloc((size_t) (argc + 1) * sizeof(char *));
+        if (new_argv == NULL) {
+            perror("malloc");
+            return -1;
+        }
+
+        for (i = 0; i < argc; i++) {
+            new_argv[i] = argv[i];
+        }
+        new_argv[argc] = NULL;
+
+        execv(output_executable, new_argv);
+        perror("execv");
+        nx_free(new_argv);
+        return -1;
     }
 
     return 0;
@@ -1495,6 +1705,103 @@ long nx_file_size(const char *filename) {
     size = ftell(file);
     fclose(file);
     return size;
+}
+/* }}} */
+
+/* Logging {{{ */
+static void _nx_logger_format_message(NXLogger *logger, NXLogLevel level, const char *format,
+                                      va_list args) {
+    time_t current_time;
+    char   timestamp[32];
+
+    nx_string_builder_clear(logger->buffer);
+
+    /* Add timestamp if enabled */
+    if (logger->use_timestamps) {
+        current_time = time(NULL);
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&current_time));
+        nx_string_builder_append(logger->buffer, "[");
+        nx_string_builder_append(logger->buffer, timestamp);
+        nx_string_builder_append(logger->buffer, "] ");
+    }
+
+    /* Add log level */
+    nx_string_builder_append(logger->buffer, "[");
+    nx_string_builder_append(logger->buffer, NX_LOG_LEVEL_STRINGS[level]);
+    nx_string_builder_append(logger->buffer, "] ");
+
+    /* Format the actual message */
+    {
+        char formatted_message[4096];
+        nx_vsnprintf(formatted_message, sizeof(formatted_message), format, args);
+        nx_string_builder_append(logger->buffer, formatted_message);
+    }
+
+    nx_string_builder_append(logger->buffer, "\n");
+}
+
+static void _nx_logger_write(NXLogger *logger, NXLogLevel level) {
+    const char *message = nx_string_builder_to_cstring(logger->buffer);
+
+    if (logger->use_stdout) {
+        fprintf(stdout, "%s%s%s", NX_LOG_LEVEL_COLORS[level], message, COLOR_RESET);
+        fflush(stdout);
+    }
+
+    if (logger->file) {
+        fprintf(logger->file->file, "%s", message);
+        fflush(logger->file->file);
+    }
+}
+
+NXLogger *nx_logger_create(const char *filename, bool use_stdout, bool use_timestamps,
+                           NXLogLevel min_level) {
+    NXLogger *logger = (NXLogger *) nx_malloc(sizeof(NXLogger));
+    if (!logger) {
+        return NULL;
+    }
+
+    logger->buffer = nx_string_builder_create();
+    if (!logger->buffer) {
+        nx_free(logger);
+        return NULL;
+    }
+
+    logger->file = NULL;
+    if (filename) {
+        logger->file = nx_file_open(filename, "a");
+        if (!logger->file) {
+            nx_string_builder_destroy(logger->buffer);
+            nx_free(logger);
+            return NULL;
+        }
+    }
+
+    logger->use_stdout     = use_stdout;
+    logger->use_timestamps = use_timestamps;
+    logger->min_level      = min_level;
+
+    return logger;
+}
+
+void nx_logger_destroy(NXLogger *logger) {
+    if (logger) {
+        if (logger->file) {
+            nx_file_close(logger->file);
+        }
+        nx_string_builder_destroy(logger->buffer);
+        nx_free(logger);
+    }
+}
+
+void nx_logger_log(NXLogger *logger, NXLogLevel level, const char *format, ...) {
+    if (level >= logger->min_level) {
+        va_list args;
+        va_start(args, format);
+        _nx_logger_format_message(logger, level, format, args);
+        va_end(args);
+        _nx_logger_write(logger, level);
+    }
 }
 /* }}} */
 
