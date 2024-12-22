@@ -29,14 +29,24 @@ typedef struct {
     size_t         vertex_size;
     NXUIAttribute *attributes;
     int            attribute_count;
-    void (*loop)(NXUIContext *nxui, NXUIMesh *mesh, NXUIShaderProgram *shader_prog);
+    void (*loop)(NXUIShaderProgram *shader_prog);
 } Art;
 
 static void print_help(const char *prog_name) {
-    printf("Usage: %s [OPTIONS]\n", prog_name);
-    printf("Options:\n");
-    printf("  -h, --help       Display this help message\n");
-    printf("  -a, --art        Select an art to render\n");
+    /* clang-format off */
+    printf(COLOR_GREEN "Fragart\n" COLOR_RESET);
+    printf("A program for rendering mesmerizing shader-based art made by @xlc-dev using Nexus.\n\n");
+
+    printf(COLOR_CYAN "Usage: " COLOR_RESET "%s [OPTIONS]\n", prog_name);
+    printf(COLOR_CYAN "Options:\n" COLOR_RESET);
+    printf("  " COLOR_GREEN "-h, --help      " COLOR_RESET "Display this help message and exit\n");
+    printf("  " COLOR_GREEN "-a, --art       " COLOR_RESET "Select an art to render\n");
+
+    printf("\n");
+
+    printf("" COLOR_YELLOW "Available art options:\n" COLOR_RESET);
+    printf("" COLOR_BLUE "- waves       " COLOR_RESET "Render a dynamic wave pattern\n");
+    /* clang-format on */
 }
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -98,11 +108,9 @@ static GLFWwindow *init_window(void) {
     return window;
 }
 
-static void art_one_loop(NXUIContext *nxui, NXUIMesh *mesh, NXUIShaderProgram *shader_prog) {
-    (void) mesh;
+static void art_one_loop(NXUIShaderProgram *shader_prog) {
     float timeValue = (float) glfwGetTime();
     nxui_set_uniform_float(shader_prog, "iTime", timeValue);
-    nxui_render_ui(nxui);
 }
 
 static float         vertex_data1[] = {-1.0f, -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 1.0f, 0.0f,
@@ -174,11 +182,11 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        glClearColor(0.078f, 0.078f, 0.117f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        nxui_clear(0.078f, 0.078f, 0.117f, 1.0f);
 
-        selected_art->loop(nxui, &mesh, &shader_prog);
+        selected_art->loop(&shader_prog);
 
+        nxui_render_ui(nxui);
         glfwSwapBuffers(window);
     }
 
