@@ -125,6 +125,8 @@ void nxui_set_uniform_float(NXUIShaderProgram *shader, const char *name, float v
 void nxui_set_uniform_int(NXUIShaderProgram *shader, const char *name, int value);
 void nxui_set_uniform_vec4(NXUIShaderProgram *shader, const char *name, float x, float y, float z,
                            float w);
+
+void nxui_clear(float r, float g, float b, float a);
 #endif /* NXUI_H */
 
 #ifdef NXUI_IMPLEMENTATION
@@ -369,5 +371,10 @@ void nxui_set_uniform_vec4(NXUIShaderProgram *shader, const char *name, float x,
         nx_die1("Uniform '%s' not found in shader program.", name);
     }
     glUniform4f(location, x, y, z, w);
+}
+
+void nxui_clear(float r, float g, float b, float a) {
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 #endif /* NXUI_IMPLEMENTATION */
