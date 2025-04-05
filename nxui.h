@@ -1,16 +1,14 @@
 /* Copyright (C) 2024 Nexus
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
+ * it under the terms of the Mozilla Public License, version 2.0.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OF ANY KIND, either express or implied.
+ * See the Mozilla Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License
+ * along with this program. If not, see <https://www.mozilla.org/MPL/2.0/>.
  *
  * ===== DOCUMENTATION ====================================================
  *
@@ -42,6 +40,13 @@
  *        use your own OpenGL loader.
  *
  * ===== VERSIONING =======================================================
+ * Version: 0.0.2
+ * Release Date: 05-04-2025
+ *
+ * Changelog:
+ * - Add mode to NXUIMesh
+ * - Add vec2 and vec3 uniform setters
+ * - Add clear function
  *
  * Version: 0.0.1
  * Release Date: 21-12-2024
@@ -244,8 +249,9 @@ NXUIMesh nxui_create_mesh(const void *vertex_data, size_t vertex_size, const uns
     unsigned int *auto_indices = NULL;
     size_t        i;
 
-    mesh.vao = _nxui_create_vao();
-    mesh.vbo = _nxui_create_vbo(vertex_data, vertex_size, usage);
+    mesh.mode = GL_TRIANGLES;
+    mesh.vao  = _nxui_create_vao();
+    mesh.vbo  = _nxui_create_vbo(vertex_data, vertex_size, usage);
 
     if (!indices && vertex_size > 0) {
         size_t stride_sz = attributes[0].stride ? (size_t) attributes[0].stride : sizeof(float);

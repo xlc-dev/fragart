@@ -60,6 +60,13 @@
  *        Sets the growth factor of the string builder. Default is 2.
  *
  * ===== VERSIONING =======================================================
+ * Version: 0.1.2
+ * Release Date: 05-04-2025
+ *
+ * Changelog:
+ * - Some functions that were public should've been private
+ * - Some simple refactoring
+ * - Die on allocation failure in string builder
  *
  * Version: 0.1.1
  * Release Date: 22-12-2024
@@ -564,10 +571,10 @@ typedef struct {
 } NXSinglyLinkedList;
 
 NXSinglyLinkedList *nx_sll_create(void);
+void                nx_sll_destroy(NXSinglyLinkedList *list);
 void                nx_sll_append(NXSinglyLinkedList *list, void *data);
 void                nx_sll_prepend(NXSinglyLinkedList *list, void *data);
 void                nx_sll_remove(NXSinglyLinkedList *list, void *data);
-void                nx_sll_destroy(NXSinglyLinkedList *list);
 
 typedef struct NXDLLNode {
     void             *data;
@@ -581,10 +588,10 @@ typedef struct {
 } NXDoublyLinkedList;
 
 NXDoublyLinkedList *nx_dll_create(void);
+void                nx_dll_destroy(NXDoublyLinkedList *list);
 void                nx_dll_append(NXDoublyLinkedList *list, void *data);
 void                nx_dll_prepend(NXDoublyLinkedList *list, void *data);
 void                nx_dll_remove(NXDoublyLinkedList *list, void *data);
-void                nx_dll_destroy(NXDoublyLinkedList *list);
 /* }}} */
 
 /* Hashmap {{{ */
@@ -602,15 +609,12 @@ typedef struct nx_hashmap {
     bool (*key_equal)(void *key1, void *key2);
 } NXHashMap;
 
-size_t     nx_default_hash(void *key);
-bool       nx_default_key_equal(void *key1, void *key2);
 NXHashMap *nx_hashmap_create(size_t (*hash_func)(void *key),
                              bool (*key_equal)(void *key1, void *key2));
+void       nx_hashmap_destroy(NXHashMap *map);
 bool       nx_hashmap_insert(NXHashMap *map, void *key, void *value);
 void      *nx_hashmap_get(NXHashMap *map, void *key);
 bool       nx_hashmap_remove(NXHashMap *map, void *key);
-void       nx_hashmap_resize(NXHashMap *map);
-void       nx_hashmap_destroy(NXHashMap *map);
 /* }}} */
 
 /* String Builder {{{ */
@@ -626,7 +630,6 @@ void             nx_string_builder_append(NXStringBuilder *sb, const char *str);
 void             nx_string_builder_append_char(NXStringBuilder *sb, char c);
 const char      *nx_string_builder_to_cstring(NXStringBuilder *sb);
 void             nx_string_builder_clear(NXStringBuilder *sb);
-void             nx_string_builder_resize(NXStringBuilder *sb, size_t new_capacity);
 /* }}} */
 
 /* Command Runner {{{ */
@@ -1002,6 +1005,16 @@ NXSinglyLinkedList *nx_sll_create(void) {
     return list;
 }
 
+void nx_sll_destroy(NXSinglyLinkedList *list) {
+    NXSLLNode *current = list->head;
+    while (current) {
+        NXSLLNode *next = current->next;
+        nx_free(current);
+        current = next;
+    }
+    nx_free(list);
+}
+
 void nx_sll_append(NXSinglyLinkedList *list, void *data) {
     NXSLLNode *new_node = (NXSLLNode *) nx_malloc(sizeof(NXSLLNode));
     if (!new_node) {
@@ -1061,16 +1074,6 @@ void nx_sll_remove(NXSinglyLinkedList *list, void *data) {
     }
 }
 
-void nx_sll_destroy(NXSinglyLinkedList *list) {
-    NXSLLNode *current = list->head;
-    while (current) {
-        NXSLLNode *next = current->next;
-        nx_free(current);
-        current = next;
-    }
-    nx_free(list);
-}
-
 NXDoublyLinkedList *nx_dll_create(void) {
     NXDoublyLinkedList *list = (NXDoublyLinkedList *) nx_malloc(sizeof(NXDoublyLinkedList));
     if (!list) {
@@ -1078,6 +1081,16 @@ NXDoublyLinkedList *nx_dll_create(void) {
     }
     list->head = list->tail = NULL;
     return list;
+}
+
+void nx_dll_destroy(NXDoublyLinkedList *list) {
+    NXDLLNode *current = list->head;
+    while (current) {
+        NXDLLNode *next = current->next;
+        nx_free(current);
+        current = next;
+    }
+    nx_free(list);
 }
 
 void nx_dll_append(NXDoublyLinkedList *list, void *data) {
@@ -1141,51 +1154,10 @@ void nx_dll_remove(NXDoublyLinkedList *list, void *data) {
         current = current->next;
     }
 }
-
-void nx_dll_destroy(NXDoublyLinkedList *list) {
-    NXDLLNode *current = list->head;
-    while (current) {
-        NXDLLNode *next = current->next;
-        nx_free(current);
-        current = next;
-    }
-    nx_free(list);
-}
 /* }}} */
 
 /* Hashmap {{{ */
-size_t nx_default_hash(void *key) {
-    const char *str  = (const char *) key;
-    size_t      hash = 0;
-    while (*str) {
-        hash = 31 * hash + (unsigned char) (*str++);
-    }
-    return hash;
-}
-
-bool nx_default_key_equal(void *key1, void *key2) {
-    return strcmp((const char *) key1, (const char *) key2) == 0;
-}
-
-NXHashMap *nx_hashmap_create(size_t (*hash_func)(void *key),
-                             bool (*key_equal)(void *key1, void *key2)) {
-    NXHashMap *map = (NXHashMap *) nx_malloc(sizeof(NXHashMap));
-    if (!map)
-        return NULL;
-
-    map->capacity  = NX_HASHMAP_INITIAL_CAPACITY;
-    map->size      = 0;
-    map->hash_func = hash_func ? hash_func : nx_default_hash;
-    map->key_equal = key_equal ? key_equal : nx_default_key_equal;
-    map->buckets   = (NXHashMapEntry **) nx_calloc(map->capacity, sizeof(NXHashMapEntry *));
-    if (!map->buckets) {
-        nx_free(map);
-        return NULL;
-    }
-    return map;
-}
-
-void nx_hashmap_resize(NXHashMap *map) {
+static void _nx_hashmap_resize(NXHashMap *map) {
     size_t           i;
     size_t           old_capacity = map->capacity;
     NXHashMapEntry **old_buckets  = map->buckets;
@@ -1205,6 +1177,51 @@ void nx_hashmap_resize(NXHashMap *map) {
     }
 
     nx_free(old_buckets);
+}
+
+static size_t _nx_default_hash(void *key) {
+    const char *str  = (const char *) key;
+    size_t      hash = 0;
+    while (*str) {
+        hash = 31 * hash + (unsigned char) (*str++);
+    }
+    return hash;
+}
+
+static bool _nx_default_key_equal(void *key1, void *key2) {
+    return strcmp((const char *) key1, (const char *) key2) == 0;
+}
+
+NXHashMap *nx_hashmap_create(size_t (*hash_func)(void *key),
+                             bool (*key_equal)(void *key1, void *key2)) {
+    NXHashMap *map = (NXHashMap *) nx_malloc(sizeof(NXHashMap));
+    if (!map)
+        return NULL;
+
+    map->capacity  = NX_HASHMAP_INITIAL_CAPACITY;
+    map->size      = 0;
+    map->hash_func = hash_func ? hash_func : _nx_default_hash;
+    map->key_equal = key_equal ? key_equal : _nx_default_key_equal;
+    map->buckets   = (NXHashMapEntry **) nx_calloc(map->capacity, sizeof(NXHashMapEntry *));
+    if (!map->buckets) {
+        nx_free(map);
+        return NULL;
+    }
+    return map;
+}
+
+void nx_hashmap_destroy(NXHashMap *map) {
+    size_t i;
+    for (i = 0; i < map->capacity; i++) {
+        NXHashMapEntry *entry = map->buckets[i];
+        while (entry) {
+            NXHashMapEntry *next = entry->next;
+            nx_free(entry);
+            entry = next;
+        }
+    }
+    nx_free(map->buckets);
+    nx_free(map);
 }
 
 bool nx_hashmap_insert(NXHashMap *map, void *key, void *value) {
@@ -1234,7 +1251,7 @@ bool nx_hashmap_insert(NXHashMap *map, void *key, void *value) {
 
     /* Fixing the conversion warning by explicitly casting to float */
     if ((float) map->size / (float) map->capacity > NX_HASHMAP_LOAD_FACTOR) {
-        nx_hashmap_resize(map);
+        _nx_hashmap_resize(map);
     }
     return true;
 }
@@ -1273,23 +1290,21 @@ bool nx_hashmap_remove(NXHashMap *map, void *key) {
     }
     return false;
 }
-
-void nx_hashmap_destroy(NXHashMap *map) {
-    size_t i;
-    for (i = 0; i < map->capacity; i++) {
-        NXHashMapEntry *entry = map->buckets[i];
-        while (entry) {
-            NXHashMapEntry *next = entry->next;
-            nx_free(entry);
-            entry = next;
-        }
-    }
-    nx_free(map->buckets);
-    nx_free(map);
-}
 /* }}} */
 
 /* String Builder {{{ */
+static void _nx_string_builder_resize(NXStringBuilder *sb, size_t new_capacity) {
+    if (new_capacity <= sb->capacity) {
+        return;
+    }
+    sb->buffer = (char *) nx_realloc(sb->buffer, new_capacity);
+    if (sb->buffer) {
+        sb->capacity = new_capacity;
+    } else {
+        nx_die("Failed to allocate memory for string builder");
+    }
+}
+
 NXStringBuilder *nx_string_builder_create(void) {
     NXStringBuilder *sb = (NXStringBuilder *) nx_malloc(sizeof(NXStringBuilder));
     if (!sb) {
@@ -1313,19 +1328,6 @@ void nx_string_builder_destroy(NXStringBuilder *sb) {
     }
 }
 
-void nx_string_builder_resize(NXStringBuilder *sb, size_t new_capacity) {
-    if (new_capacity <= sb->capacity) {
-        return;
-    }
-    sb->buffer = (char *) nx_realloc(sb->buffer, new_capacity);
-    if (sb->buffer) {
-        sb->capacity = new_capacity;
-    } else {
-        /* TODO: Handle allocation failure (e.g., exit or return an error) */
-        sb->capacity = 0;
-    }
-}
-
 void nx_string_builder_append(NXStringBuilder *sb, const char *str) {
     size_t str_len = strlen(str);
     if (sb->length + str_len >= sb->capacity) {
@@ -1333,7 +1335,7 @@ void nx_string_builder_append(NXStringBuilder *sb, const char *str) {
         while (sb->length + str_len >= new_capacity) {
             new_capacity *= NX_STRING_BUILDER_GROWTH_FACTOR;
         }
-        nx_string_builder_resize(sb, new_capacity);
+        _nx_string_builder_resize(sb, new_capacity);
     }
     memcpy(sb->buffer + sb->length, str, str_len + 1);
     sb->length += str_len;
@@ -1341,7 +1343,7 @@ void nx_string_builder_append(NXStringBuilder *sb, const char *str) {
 
 void nx_string_builder_append_char(NXStringBuilder *sb, char c) {
     if (sb->length + 1 >= sb->capacity) {
-        nx_string_builder_resize(sb, sb->capacity * NX_STRING_BUILDER_GROWTH_FACTOR);
+        _nx_string_builder_resize(sb, sb->capacity * NX_STRING_BUILDER_GROWTH_FACTOR);
     }
     sb->buffer[sb->length]     = c;
     sb->buffer[sb->length + 1] = '\0';
